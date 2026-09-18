@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Ultimate Playlist & Video Analyzer</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #ff0000;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      background: var(--card-bg);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .input-card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .btn-add {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      width: 45px;
+      border-radius: 6px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-remove {
+      background: var(--danger);
+      color: white;
+      border: none;
+      width: 45px;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    button.action-btn {
+      flex: 1;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.action-btn:hover {
+      background: #cc0000;
+    }
+
+    button:disabled {
+      background: #555 !important;
+      cursor: not-allowed;
+    }
+
+    .btn-reset {
+      background: #3b82f6 !important;
+      display: none;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      display: none;
+      margin: 20px 0;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .progress-text {
+      color: var(--warning);
+      font-weight: bold;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      background-color: #0f172a;
+      border-radius: 8px;
+      height: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background-color: var(--warning);
+      transition: width 0.3s ease;
+    }
+
+    .progress-percent {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    .channel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .channel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .channel-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .removal-section {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px dashed var(--border);
+    }
+
+    .removal-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .msg-optimal { color: var(--success); }
+    .msg-exceeding { color: var(--danger); }
+    .msg-warning { color: var(--warning); }
+
+    .video-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .video-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #1e293b;
+      font-size: 14px;
+    }
+
+    .video-item:last-child {
+      border-bottom: none;
+    }
+
+    .video-item a {
+      color: #38bdf8;
+      text-decoration: none;
+      max-width: 70%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .video-item a:hover {
+      text-decoration: underline;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>YouTube Playlist & Live Stream Analyzer</h1>
+
+    <!-- Mode Selector Buttons -->
+    <div class="mode-toggle">
+      <button id="modeMegaBtn" class="mode-btn active" onclick="switchMode('mega')">Mega Playlist Mode</button>
+      <button id="modeMultiBtn" class="mode-btn" onclick="switchMode('multi')">Analyze Multiple Playlists / Live Videos</button>
+    </div>
+
+    <!-- FORM 1: Mega Playlist Mode -->
+    <div id="megaForm" class="input-card">
+      <div class="form-group">
+        <label for="playlistUrl">Mega Playlist Link / ID</label>
+        <input type="text" id="playlistUrl" placeholder="https://www.youtube.com/playlist?list=PL...">
+      </div>
+      <div class="btn-group">
+        <button id="analyzeBtn" class="action-btn" onclick="analyzePlaylist()">Analyze Mega Playlist</button>
+        <button id="resetBtn" class="action-btn btn-reset" onclick="resetPage()">Analyze Another</button>
+      </div>
+    </div>
+
+    <!-- FORM 2: Multiple Playlists & Live Videos Mode (Combined) -->
+    <div id="multiForm" class="input-card hidden">
+      <div class="form-group">
+        <label>Enter Multiple Links (Supports Playlist URLs AND Single Live Video URLs)</label>
+        <div id="multiInputContainer">
+          <div class="input-row">
+            <input type="text" class="multi-url" placeholder="https://www.youtube.com/playlist?list=PL... OR https://www.youtube.com/watch?v=...">
+            <button class="btn-add" onclick="addPlaylistInput()">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button id="analyzeAllBtn" class="action-btn" onclick="analyzeMultipleLinks()">Analyze All</button>
+        <button id="resetBtnMulti" class="action-btn btn-reset" onclick="resetPage()">Analyze Another</button>
+      </div>
+    </div>
+
+    <!-- Progress UI -->
+    <div id="progressContainer" class="progress-container">
+      <div id="progressText" class="progress-text">Starting analysis...</div>
+      <div class="progress-bar-bg">
+        <div id="progressBarFill" class="progress-bar-fill"></div>
+      </div>
+      <div id="progressPercent" class="progress-percent">0%</div>
+    </div>
+
+    <!-- Final Report Results -->
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const YOUTUBE_API_KEY = "AIzaSyASz01QxaRkv-Ev6EMJuA4zG8y_zFnAyNM";
+
+    let currentMode = 'mega';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('modeMegaBtn').classList.toggle('active', mode === 'mega');
+      document.getElementById('modeMultiBtn').classList.toggle('active', mode === 'multi');
+
+      document.getElementById('megaForm').classList.toggle('hidden', mode !== 'mega');
+      document.getElementById('multiForm').classList.toggle('hidden', mode !== 'multi');
+
+      document.getElementById('results').innerHTML = '';
+    }
+
+    function addPlaylistInput() {
+      const container = document.getElementById('multiInputContainer');
+      const div = document.createElement('div');
+      div.className = 'input-row';
+      div.innerHTML = `
+        <input type="text" class="multi-url" placeholder="https://www.youtube.com/playlist?list=PL... OR https://www.youtube.com/watch?v=...">
+        <button class="btn-remove" onclick="removePlaylistInput(this)">-</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function removePlaylistInput(btn) {
+      btn.parentElement.remove();
+    }
+
+    function updateProgress(message, percentage) {
+      const textEl = document.getElementById('progressText');
+      const fillEl = document.getElementById('progressBarFill');
+      const percentEl = document.getElementById('progressPercent');
+
+      if (textEl) textEl.innerText = message;
+      if (fillEl) fillEl.style.width = `${percentage}%`;
+      if (percentEl) percentEl.innerText = `${Math.round(percentage)}%`;
+    }
+
+    function resetPage() {
+      window.location.reload();
+    }
+
+    function parseISODuration(duration) {
+      if (!duration) return 0;
+      const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!match) return 0;
+      const hours = parseInt(match[1] || 0);
+      const minutes = parseInt(match[2] || 0);
+      const seconds = parseInt(match[3] || 0);
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
+    function formatSeconds(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${h > 0 ? h + 'h ' : ''}${m}m ${s}s`;
+    }
+
+    // URL Type Detector: Returns 'PLAYLIST' or 'VIDEO'
+    function detectUrlType(url) {
+      if (url.includes('list=')) return 'PLAYLIST';
+      return 'VIDEO';
+    }
+
+    function extractPlaylistId(url) {
+      const match = url.match(/[&?]list=([^&]+)/);
+      return match ? match[1] : url.trim();
+    }
+
+    function extractVideoId(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : url.trim();
+    }
+
+    async function fetchPlaylistVideos(apiKey, playlistId, progressCallback) {
+      let videos = [];
+      let nextPageToken = '';
+      let pageCount = 0;
+
+      do {
+        pageCount++;
+        if (progressCallback) progressCallback(videos.length, pageCount);
+
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${nextPageToken}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error.message);
+
+        data.items.forEach(item => {
+          videos.push({
+            id: item.contentDetails.videoId,
+            title: item.snippet.title,
+            channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle,
+            channelId: item.snippet.videoOwnerChannelId || item.snippet.channelId
+          });
+        });
+
+        nextPageToken = data.nextPageToken || '';
+      } while (nextPageToken);
+
+      return videos;
+    }
+
+    async function fetchVideoDetailsBatch(apiKey, videoIds) {
+      const videoMap = {};
+      const total = videoIds.length;
+
+      for (let i = 0; i < total; i += 50) {
+        const chunk = videoIds.slice(i, i + 50);
+        const ids = chunk.map(v => typeof v === 'string' ? v : v.id).join(',');
+        const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${ids}&key=${apiKey}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error.message);
+
+        data.items.forEach(item => {
+          videoMap[item.id] = {
+            durationSec: parseISODuration(item.contentDetails?.duration),
+            title: item.snippet?.title,
+            channelTitle: item.snippet?.channelTitle
+          };
+        });
+      }
+
+      return videoMap;
+    }
+
+    function calculateSmartTrimming(videos, isMultiMode = false) {
+      const TARGET_SEC = 3600;      // 60 Mins
+      const MIN_FLOOR_SEC = 3480;   // 58 Mins
+      const OPTIMAL_CAP_SEC = 3780; // 1 Hour and 3 Minutes
+
+      let totalSec = videos.reduce((sum, v) => sum + v.durationSec, 0);
+
+      if (totalSec <= OPTIMAL_CAP_SEC) {
+        return {
+          totalVideos: videos.length,
+          originalDuration: totalSec,
+          finalDuration: totalSec,
+          videosToRemove: [],
+          statusType: "OPTIMAL",
+          message: isMultiMode 
+            ? "Good! Duration is optimal." 
+            : "Congratulations! Total duration is optimal for this channel."
+        };
+      }
+
+      let sorted = [...videos].sort((a, b) => a.durationSec - b.durationSec);
+      let remainingSec = totalSec;
+      let toRemove = [];
+
+      for (let video of sorted) {
+        if (remainingSec - video.durationSec >= MIN_FLOOR_SEC) {
+          toRemove.push(video);
+          remainingSec -= video.durationSec;
+          if (remainingSec <= TARGET_SEC + 120) break;
+        }
+      }
+
+      if (toRemove.length > 0) {
+        return {
+          totalVideos: videos.length,
+          originalDuration: totalSec,
+          finalDuration: remainingSec,
+          videosToRemove: toRemove,
+          statusType: "EXCEEDING",
+          message: isMultiMode
+            ? "Alas! Total duration is exceeding but videos can be removed to equalize duration."
+            : "Sorry! Total duration is exceeding the limit."
+        };
+      } else {
+        return {
+          totalVideos: videos.length,
+          originalDuration: totalSec,
+          finalDuration: totalSec,
+          videosToRemove: [],
+          statusType: "WARNING",
+          message: isMultiMode
+            ? "Warning ⚠️ Total duration is exceeding and removal is not possible."
+            : "Warning! This channel is crossing total duration fence, but videos can't be skipped."
+        };
+      }
+    }
+
+    // FUNCTION 1: Mega Playlist Mode
+    async function analyzePlaylist() {
+      const rawUrl = document.getElementById('playlistUrl').value.trim();
+      const progressContainer = document.getElementById('progressContainer');
+      const resultsDiv = document.getElementById('results');
+      const btn = document.getElementById('analyzeBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "YOUR_API_KEY_HERE") {
+        alert('Please set your YouTube API Key inside the script code.');
+        return;
+      }
+      if (!rawUrl) {
+        alert('Please enter a valid Playlist URL or ID.');
+        return;
+      }
+
+      const playlistId = extractPlaylistId(rawUrl);
+      resultsDiv.innerHTML = '';
+      progressContainer.style.display = 'block';
+      btn.disabled = true;
+
+      try {
+        updateProgress('Connecting to YouTube API...', 5);
+        const rawVideos = await fetchPlaylistVideos(YOUTUBE_API_KEY, playlistId, (count) => {
+          updateProgress(`Fetching videos from playlist... Total fetched: ${count}`, 15);
+        });
+
+        if (rawVideos.length === 0) throw new Error("No videos found in this playlist.");
+
+        updateProgress('Fetching video details & durations...', 40);
+        const videoDetailsMap = await fetchVideoDetailsBatch(YOUTUBE_API_KEY, rawVideos);
+
+        const fullVideos = rawVideos.map(v => ({
+          ...v,
+          durationSec: videoDetailsMap[v.id]?.durationSec || 0
+        }));
+
+        updateProgress('Grouping videos by channel...', 85);
+        const channelGroups = {};
+        fullVideos.forEach(v => {
+          const key = v.channelId || v.channelTitle;
+          if (!channelGroups[key]) {
+            channelGroups[key] = { title: v.channelTitle, videos: [] };
+          }
+          channelGroups[key].videos.push(v);
+        });
+
+        let reportHtml = '';
+        Object.keys(channelGroups).forEach(channelKey => {
+          const group = channelGroups[channelKey];
+          const report = calculateSmartTrimming(group.videos, false);
+          reportHtml += renderCard(group.title, report);
+        });
+
+        updateProgress('Analysis Complete!', 100);
+        setTimeout(() => {
+          progressContainer.style.display = 'none';
+          resultsDiv.innerHTML = reportHtml;
+          resetBtn.style.display = 'block';
+        }, 500);
+
+      } catch (error) {
+        alert('Error analyzing playlist: ' + error.message);
+        progressContainer.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    // FUNCTION 2: Analyze Multiple Links (Playlists AND Live/Single Videos)
+    async function analyzeMultipleLinks() {
+      const inputs = document.querySelectorAll('.multi-url');
+      const urls = Array.from(inputs).map(i => i.value.trim()).filter(val => val !== '');
+      const progressContainer = document.getElementById('progressContainer');
+      const resultsDiv = document.getElementById('results');
+      const btn = document.getElementById('analyzeAllBtn');
+      const resetBtn = document.getElementById('resetBtnMulti');
+
+      if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "YOUR_API_KEY_HERE") {
+        alert('Please set your YouTube API Key inside the script code.');
+        return;
+      }
+      if (urls.length === 0) {
+        alert('Please enter at least one playlist or video link.');
+        return;
+      }
+
+      resultsDiv.innerHTML = '';
+      progressContainer.style.display = 'block';
+      btn.disabled = true;
+
+      try {
+        let totalLinks = urls.length;
+        let reportHtml = '';
+
+        for (let i = 0; i < totalLinks; i++) {
+          const rawUrl = urls[i];
+          const urlType = detectUrlType(rawUrl);
+          const baseProgress = (i / totalLinks) * 100;
+          const stepSize = 100 / totalLinks;
+
+          updateProgress(`Processing Link ${i + 1} of ${totalLinks}...`, baseProgress + (stepSize * 0.1));
+
+          if (urlType === 'PLAYLIST') {
+            // PLAYLIST PROCESSING
+            const playlistId = extractPlaylistId(rawUrl);
+            const rawVideos = await fetchPlaylistVideos(YOUTUBE_API_KEY, playlistId, (count) => {
+              updateProgress(`Link ${i + 1}/${totalLinks} (Playlist): Fetched ${count} videos...`, baseProgress + (stepSize * 0.3));
+            });
+
+            if (rawVideos.length === 0) continue;
+
+            const videoDetailsMap = await fetchVideoDetailsBatch(YOUTUBE_API_KEY, rawVideos);
+            const fullVideos = rawVideos.map(v => ({
+              ...v,
+              durationSec: videoDetailsMap[v.id]?.durationSec || 0
+            }));
+
+            const channelName = fullVideos[0]?.channelTitle || `Playlist #${i + 1}`;
+            const report = calculateSmartTrimming(fullVideos, true);
+            reportHtml += renderCard(`${channelName} (Playlist #${i + 1})`, report);
+
+          } else {
+            // SINGLE VIDEO / STREAMED VIDEO PROCESSING
+            const videoId = extractVideoId(rawUrl);
+            const videoDetailsMap = await fetchVideoDetailsBatch(YOUTUBE_API_KEY, [videoId]);
+            const videoData = videoDetailsMap[videoId];
+
+            if (!videoData) continue;
+
+            const singleVideoObj = [{
+              id: videoId,
+              title: videoData.title,
+              channelTitle: videoData.channelTitle,
+              durationSec: videoData.durationSec
+            }];
+
+            const report = calculateSmartTrimming(singleVideoObj, true);
+            reportHtml += renderCard(`${videoData.channelTitle} (Video / Live Replay)`, report);
+          }
+        }
+
+        updateProgress('All Links Analyzed Successfully!', 100);
+        setTimeout(() => {
+          progressContainer.style.display = 'none';
+          resultsDiv.innerHTML = reportHtml;
+          resetBtn.style.display = 'block';
+        }, 500);
+
+      } catch (error) {
+        alert('Error during processing: ' + error.message);
+        progressContainer.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    // Helper: Render Card for Playlists & Videos
+    function renderCard(title, report) {
+      let msgClass = '';
+      if (report.statusType === "OPTIMAL") msgClass = 'msg-optimal';
+      if (report.statusType === "EXCEEDING") msgClass = 'msg-exceeding';
+      if (report.statusType === "WARNING") msgClass = 'msg-warning';
+
+      let removalHtml = '';
+      if (report.videosToRemove.length > 0) {
+        removalHtml = `
+          <div class="removal-section">
+            <div class="removal-title ${msgClass}">${report.message}</div>
+            <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Suggested videos to remove to match ~1 hour duration:</div>
+            <ul class="video-list">
+              ${report.videosToRemove.map(v => `
+                <li class="video-item">
+                  <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+                  <span>${formatSeconds(v.durationSec)}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      } else {
+        removalHtml = `
+          <div class="removal-section">
+            <div class="removal-title ${msgClass}">${report.message}</div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="channel-card">
+          <div class="channel-header">
+            <div class="channel-name">${title}</div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-label">Total Videos</div>
+              <div class="stat-value">${report.totalVideos}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Total Duration</div>
+              <div class="stat-value">${formatSeconds(report.originalDuration)}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Adjusted Duration</div>
+              <div class="stat-value" style="color: var(--success);">${formatSeconds(report.finalDuration)}</div>
+            </div>
+          </div>
+          ${removalHtml}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
